@@ -175,4 +175,82 @@ describe('markdown-it-attrs', function() {
     var res = md.render(src);
     assert.equal(res, expected);
   });
+
+  describe('commonmark proposed spec', function() {
+    var src, expected;
+
+    describe('horizontal rules', function () {
+      it('should give hr when space before {}', function () {
+        src = '--- {#myId .myClass key=val key2="val 2"}';
+        expected = '<hr id="myId" class="myClass" key="val" key2="val 2" />\n';
+        assert.equal(md.render(src), expected);
+
+        src = '---     {#myId .myClass key=val key2="val 2"}';
+        expected = '<hr id="myId" class="myClass" key="val" key2="val 2" />\n';
+        assert.equal(md.render(src), expected);
+      });
+
+      it('should give paragraph when no space before {}', function () {
+        src = '---{.myClass}';
+        expected = '<p>---{.myClass}</p>\n';
+        assert.equal(md.render(src), expected);
+      });
+
+      it('should support any whitespace between {}', function () {
+        src = '--- {#myId     .myClass\nkey=val}';
+        expected = '<hr id="myId" class="myClass" key="val" />\n';
+        assert.equal(md.render(src), expected);
+      });
+
+      it('should not support blank lines within {}', function () {
+        src = '--- {#myId\n\n.myClass}';
+        expected = '<p>--- {#myId</p>\n<p>.myClass}</p>\n';
+        assert.equal(md.render(src), expected);
+      });
+    });
+
+    describe('ATX headers', function () {
+      it('should work', function () {
+        var src = '### foo {#myId .myClass key=val key2="val 2"}';
+        var expected = '<h3 id="myId" class="myClass" key="val" key2="val 2">foo</h3>\n';
+        assert.equal(md.render(src), expected);
+      });
+
+      it('should work with closing header sequence', function () {
+        src = '### foo ### {#myId}';
+        expected = '<h3 id="myId">foo</h3>\n';
+        assert.equal(md.render(src), expected);
+      });
+    });
+
+    describe('Setext headers', function () {
+      it('should work', function () {
+        var src = 'Foo {#myId}\n===========';
+        var expected = '<h1 id="myId">Foo</h1>\n';
+        assert.equal(md.render(src), expected);
+      });
+    });
+
+    describe('code blocks', function () {
+      it('should work', function () {
+        var src = '``` {.language-ruby #code1}\nx = 1\n```';
+        var expected = '<pre><code class="language-ruby" id="code1">x = 1\n</code></pre>\n';
+        assert.equal(md.render(src), expected);
+      });
+
+      it('should not add attributes when no space before {}', function () {
+        var src = '```{.foo}\nx = 1\n```';
+        var expected = '<pre><code class="language-{.foo}">x = 1\n</code></pre>\n';
+        assert.equal(md.render(src), expected);
+      });
+    });
+
+    describe('reference strings', function () {
+      it('should work', function () {
+        var src = '[foo][bar]\n\n[bar]: /url "title" {.myClass}';
+        var expected = '<p><a href="/url" title="title" class="myClass">foo</a></p>\n';
+        assert.equal(md.render(src), expected);
+      });
+    });
+  });
 });
